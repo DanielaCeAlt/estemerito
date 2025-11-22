@@ -7,20 +7,26 @@ import { VistaEquipoCompleto, VistaMovimientoDetallado } from '@/types/database'
 
 // Configuración de la conexión a la base de datos
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || 'mysql-gostcam.mysql.database.azure.com',
   port: parseInt(process.env.DB_PORT || '3306'),
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'GostCAM',
+  user: process.env.DB_USER || 'gostcam',
+  password: process.env.DB_PASSWORD || 'Altamirano92',
+  database: process.env.DB_NAME || 'gostcam',
   charset: 'utf8mb4',
   timezone: '+00:00',
+  ssl: {
+    rejectUnauthorized: false, // Para Azure MySQL
+  },
+  connectTimeout: 60000,
+  acquireTimeout: 60000,
+  reconnect: true,
 };
 
 // Pool de conexiones para mejor performance
 const pool = mysql.createPool({
   ...dbConfig,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 5, // Reducido para Azure
   queueLimit: 0,
 });
 

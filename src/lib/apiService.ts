@@ -134,8 +134,10 @@ class ApiService {
   // MÉTODO DE AUTENTICACIÓN
   // ========================
   async login(email: string, password: string): Promise<LoginResponse> {
+    console.log('[ApiService] Iniciando login con proxy de Azure...');
     try {
-      const response = await fetch('/api/auth/login', {
+      // Usar el proxy de autenticación que conecta con Azure
+      const response = await fetch('/api/auth/proxy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,11 +148,14 @@ class ApiService {
         })
       });
 
+      console.log('[ApiService] Respuesta del proxy:', response.status, response.statusText);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('[ApiService] Login response:', data);
       return data;
     } catch (error) {
       console.error('Login error:', error);
