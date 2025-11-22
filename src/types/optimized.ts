@@ -469,9 +469,9 @@ export interface ValidationRule<T = any> {
   readonly message: string;
 }
 
-export interface ValidationSchema<T> {
+export type ValidationSchema<T> = {
   readonly [K in keyof T]?: ValidationRule<T[K]>[];
-}
+};
 
 export interface ValidationResult {
   readonly isValid: boolean;
