@@ -18,8 +18,6 @@ const dbConfig = {
     rejectUnauthorized: false, // Para Azure MySQL
   },
   connectTimeout: 60000,
-  acquireTimeout: 60000,
-  reconnect: true,
 };
 
 // Pool de conexiones para mejor performance
