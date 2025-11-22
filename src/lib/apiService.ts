@@ -131,6 +131,37 @@ class ApiService {
   }
 
   // ========================
+  // MÉTODO DE AUTENTICACIÓN
+  // ========================
+  async login(email: string, password: string): Promise<LoginResponse> {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          correo: email,
+          contraseña: password
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        message: 'Error de conexión'
+      };
+    }
+  }
+
+  // ========================
   // MÉTODOS GENÉRICOS OPTIMIZADOS
   // ========================
   async get<T>(

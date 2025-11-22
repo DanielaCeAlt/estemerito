@@ -6,27 +6,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VistaEquipoCompleto, ApiResponse } from '@/types/database';
 
 const PYTHON_API_URL = process.env.PYTHON_API_URL || 'http://localhost:8000';
-const API_USERNAME = process.env.API_USERNAME;
-const API_PASSWORD = process.env.API_PASSWORD;
-
-// Función para crear headers con autenticación
-function createAuthHeaders(authHeader?: string | null): HeadersInit {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-  };
-
-  // Si tenemos credenciales de Azure, usar autenticación básica
-  if (API_USERNAME && API_PASSWORD) {
-    const credentials = Buffer.from(`${API_USERNAME}:${API_PASSWORD}`).toString('base64');
-    headers['Authorization'] = `Basic ${credentials}`;
-  }
-  // O usar el header de autorización que viene en la request
-  else if (authHeader) {
-    headers['Authorization'] = authHeader;
-  }
-
-  return headers;
-}
 
 // GET: Obtener equipos desde API Python
 export async function GET(request: NextRequest) {
@@ -41,7 +20,10 @@ export async function GET(request: NextRequest) {
     
     const response = await fetch(pythonUrl, {
       method: 'GET',
-      headers: createAuthHeaders(authHeader),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader && { 'Authorization': authHeader }),
+      },
     });
 
     if (!response.ok) {
@@ -73,7 +55,10 @@ export async function POST(request: NextRequest) {
     
     const response = await fetch(`${PYTHON_API_URL}/equipos`, {
       method: 'POST',
-      headers: createAuthHeaders(authHeader),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader && { 'Authorization': authHeader }),
+      },
       body: JSON.stringify(body),
     });
 
@@ -110,7 +95,10 @@ export async function PUT(request: NextRequest) {
     
     const response = await fetch(`${PYTHON_API_URL}/equipos/${body.no_serie}`, {
       method: 'PUT',
-      headers: createAuthHeaders(authHeader),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authHeader && { 'Authorization': authHeader }),
+      },
       body: JSON.stringify(body),
     });
 
