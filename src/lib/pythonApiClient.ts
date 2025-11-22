@@ -8,20 +8,14 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost
 class PythonApiClient {
   private baseUrl: string;
   private token: string | null = null;
-  private useBasicAuth: boolean = false;
-  private credentials: { username: string; password: string } | null = null;
+  private username: string | null = null;
+  private password: string | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    
-    // Configurar credenciales de Azure si están disponibles
-    if (process.env.API_USERNAME && process.env.API_PASSWORD) {
-      this.credentials = {
-        username: process.env.API_USERNAME,
-        password: process.env.API_PASSWORD
-      };
-      this.useBasicAuth = true;
-    }
+    // Configurar credenciales desde variables de entorno
+    this.username = process.env.API_USERNAME || null;
+    this.password = process.env.API_PASSWORD || null;
   }
 
   // Configurar token de autenticación
@@ -29,10 +23,10 @@ class PythonApiClient {
     this.token = token;
   }
 
-  // Configurar autenticación básica para Azure
-  setBasicAuth(username: string, password: string) {
-    this.credentials = { username, password };
-    this.useBasicAuth = true;
+  // Configurar credenciales básicas para Azure
+  setCredentials(username: string, password: string) {
+    this.username = username;
+    this.password = password;
   }
 
   // Método público para hacer requests
@@ -42,25 +36,24 @@ class PythonApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
-    // Preparar headers de autenticación
-    const authHeaders: Record<string, string> = {};
-    
-    if (this.useBasicAuth && this.credentials) {
-      // Usar autenticación básica para Azure App Service
-      const basicAuth = btoa(`${this.credentials.username}:${this.credentials.password}`);
-      authHeaders['Authorization'] = `Basic ${basicAuth}`;
-    } else if (this.token) {
-      // Usar Bearer token
-      authHeaders['Authorization'] = `Bearer ${this.token}`;
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // Agregar autenticación básica si tenemos credenciales
+    if (this.username && this.password) {
+      const credentials = btoa(`${this.username}:${this.password}`);
+      headers['Authorization'] = `Basic ${credentials}`;
     }
-    
+    // O usar Bearer token si está disponible
+    else if (this.token) {
+      headers['Authorization'] = `Bearer ${this.token}`;
+    }
+
     const config: RequestInit = {
       ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeaders,
-        ...options.headers,
-      },
+      headers,
     };
 
     try {
