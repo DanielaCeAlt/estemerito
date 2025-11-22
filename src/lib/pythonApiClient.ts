@@ -8,14 +8,31 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_PYTHON_API_URL || 'http://localhost
 class PythonApiClient {
   private baseUrl: string;
   private token: string | null = null;
+  private useBasicAuth: boolean = false;
+  private credentials: { username: string; password: string } | null = null;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    
+    // Configurar credenciales de Azure si están disponibles
+    if (process.env.API_USERNAME && process.env.API_PASSWORD) {
+      this.credentials = {
+        username: process.env.API_USERNAME,
+        password: process.env.API_PASSWORD
+      };
+      this.useBasicAuth = true;
+    }
   }
 
   // Configurar token de autenticación
   setToken(token: string) {
     this.token = token;
+  }
+
+  // Configurar autenticación básica para Azure
+  setBasicAuth(username: string, password: string) {
+    this.credentials = { username, password };
+    this.useBasicAuth = true;
   }
 
   // Método público para hacer requests
@@ -25,11 +42,23 @@ class PythonApiClient {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // Preparar headers de autenticación
+    const authHeaders: Record<string, string> = {};
+    
+    if (this.useBasicAuth && this.credentials) {
+      // Usar autenticación básica para Azure App Service
+      const basicAuth = btoa(`${this.credentials.username}:${this.credentials.password}`);
+      authHeaders['Authorization'] = `Basic ${basicAuth}`;
+    } else if (this.token) {
+      // Usar Bearer token
+      authHeaders['Authorization'] = `Bearer ${this.token}`;
+    }
+    
     const config: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(this.token && { 'Authorization': `Bearer ${this.token}` }),
+        ...authHeaders,
         ...options.headers,
       },
     };
